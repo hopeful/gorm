@@ -16,18 +16,18 @@ type DB struct {
 	Error        error
 	RowsAffected int64
 
-	// single db
-	db                SQLCommon
-	blockGlobalUpdate bool
-	logMode           logModeValue
-	logger            logger
-	search            *search
+	// single db   单个db私有属性
+	db                SQLCommon    // 定义的公共接口（Exec，Prepare，Query，QueryRow）
+	blockGlobalUpdate bool         //TODO 需要核实 全局更新标志
+	logMode           logModeValue // 日志开关
+	logger            logger       // 自定义日志接口
+	search            *search      // 拼装SQL查询条件  保存搜索的条件where, limit, group，
 	values            sync.Map
 
-	// global db
-	parent        *DB
-	callbacks     *Callback
-	dialect       Dialect
+	// global db  全局DB属性
+	parent        *DB       // 父DB对象
+	callbacks     *Callback // 保存各种操作需要执行的调用链
+	dialect       Dialect   // 数据库方言
 	singularTable bool
 }
 
@@ -46,10 +46,10 @@ const (
 //       db, err := gorm.Open("mysql", "user:password@/dbname?charset=utf8&parseTime=True&loc=Local")
 //     }
 // GORM has wrapped some drivers, for easier to remember driver's import path, so you could import the mysql driver with
-//    import _ "github.com/jinzhu/gorm/dialects/mysql"
-//    // import _ "github.com/jinzhu/gorm/dialects/postgres"
-//    // import _ "github.com/jinzhu/gorm/dialects/sqlite"
-//    // import _ "github.com/jinzhu/gorm/dialects/mssql"
+//    import _ "github.com/hopeful/gorm/dialects/mysql"
+//    // import _ "github.com/hopeful/gorm/dialects/postgres"
+//    // import _ "github.com/hopeful/gorm/dialects/sqlite"
+//    // import _ "github.com/hopeful/gorm/dialects/mssql"
 func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	if len(args) == 0 {
 		err = errors.New("invalid database source")

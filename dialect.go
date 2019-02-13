@@ -17,15 +17,16 @@ type Dialect interface {
 	SetDB(db SQLCommon)
 
 	// BindVar return the placeholder for actual values in SQL statements, in many dbs it is "?", Postgres using $1
+	// 替换SQL中的占位符
 	BindVar(i int) string
 	// Quote quotes field name to avoid SQL parsing exceptions by using a reserved word as a field name
 	Quote(key string) string
-	// DataTypeOf return data's sql type
+	// DataTypeOf return data's sql type  返回数据库具体类型
 	DataTypeOf(field *StructField) string
 
-	// HasIndex check has index or not
+	// HasIndex check has index or not  检查表是否有该索引
 	HasIndex(tableName string, indexName string) bool
-	// HasForeignKey check has foreign key or not
+	// HasForeignKey check has foreign key or not   检查表是否设置外键
 	HasForeignKey(tableName string, foreignKeyName string) bool
 	// RemoveIndex remove index
 	RemoveIndex(tableName string, indexName string) error
@@ -37,6 +38,7 @@ type Dialect interface {
 	ModifyColumn(tableName string, columnName string, typ string) error
 
 	// LimitAndOffsetSQL return generated SQL with Limit and Offset, as mssql has special case
+	// 限制查询记录条数
 	LimitAndOffsetSQL(limit, offset interface{}) string
 	// SelectFromDummyTable return select values, for most dbs, `SELECT values` just works, mysql needs `SELECT value FROM DUAL`
 	SelectFromDummyTable() string

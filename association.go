@@ -7,6 +7,7 @@ import (
 )
 
 // Association Mode contains some helper methods to handle relationship things easily.
+// 关联模式，主要是获取关联关系的帮助方法
 type Association struct {
 	Error  error
 	scope  *Scope
@@ -268,15 +269,15 @@ func (association *Association) Count() int {
 	)
 
 	switch relationship.Kind {
-	case "many_to_many":
+	case "many_to_many": // 多对多关系
 		query = relationship.JoinTableHandler.JoinWith(relationship.JoinTableHandler, query, scope.Value)
-	case "has_many", "has_one":
+	case "has_many", "has_one": // 包含一个，包含多个
 		primaryKeys := scope.getColumnAsArray(relationship.AssociationForeignFieldNames, scope.Value)
 		query = query.Where(
 			fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relationship.ForeignDBNames), toQueryMarks(primaryKeys)),
 			toQueryValues(primaryKeys)...,
 		)
-	case "belongs_to":
+	case "belongs_to": //
 		primaryKeys := scope.getColumnAsArray(relationship.ForeignFieldNames, scope.Value)
 		query = query.Where(
 			fmt.Sprintf("%v IN (%v)", toQueryCondition(scope, relationship.AssociationForeignDBNames), toQueryMarks(primaryKeys)),
