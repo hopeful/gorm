@@ -13,6 +13,7 @@ import (
 )
 
 // Scope contain current operation's information when you perform any operation on the database
+// Scope 主要是包含当前数据库操作所需要的环境
 type Scope struct {
 	Search          *search
 	Value           interface{}
