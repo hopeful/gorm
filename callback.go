@@ -12,11 +12,12 @@ var DefaultCallback = &Callback{}
 //   Field `queries` contains callbacks will be call when querying object with query methods like Find, First, Related, Association...
 //   Field `rowQueries` contains callbacks will be call when querying object with Row, Rows...
 //   Field `processors` contains all callback processors, will be used to generate above callbacks in order
+// Callback 实现数据库CRUD操作，及其结果映射
 type Callback struct {
-	creates    []*func(scope *Scope)
-	updates    []*func(scope *Scope)
-	deletes    []*func(scope *Scope)
-	queries    []*func(scope *Scope)
+	creates    []*func(scope *Scope) // INSERT操作
+	updates    []*func(scope *Scope) // UPDATE操作
+	deletes    []*func(scope *Scope) // DELETE操作
+	queries    []*func(scope *Scope) // QUERY操作
 	rowQueries []*func(scope *Scope)
 	processors []*CallbackProcessor
 }

@@ -34,9 +34,9 @@ type DB struct {
 type logModeValue int
 
 const (
-	defaultLogMode logModeValue = iota
-	noLogMode
-	detailedLogMode
+	defaultLogMode  logModeValue = iota // 默认日志记录模式 0
+	noLogMode                           // 没有日志
+	detailedLogMode                     // 详细日志
 )
 
 // Open initialize a new db connection, need to import driver first, e.g:
@@ -50,6 +50,7 @@ const (
 //    // import _ "github.com/hopeful/gorm/dialects/postgres"
 //    // import _ "github.com/hopeful/gorm/dialects/sqlite"
 //    // import _ "github.com/hopeful/gorm/dialects/mssql"
+// 初始化一个新的DB链接，需要传入数据库方言
 func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	if len(args) == 0 {
 		err = errors.New("invalid database source")
@@ -76,7 +77,7 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	default:
 		return nil, fmt.Errorf("invalid database source: %v is not a valid type", value)
 	}
-
+	// 创建新的DB链接
 	db = &DB{
 		db:        dbSQL,
 		logger:    defaultLogger,
@@ -88,6 +89,7 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 		return
 	}
 	// Send a ping to make sure the database connection is alive.
+	// 确保数据是链接状态
 	if d, ok := dbSQL.(*sql.DB); ok {
 		if err = d.Ping(); err != nil && ownDbSQL {
 			d.Close()
@@ -109,6 +111,7 @@ type closer interface {
 }
 
 // Close close current db connection.  If database connection is not an io.Closer, returns an error.
+// 引用sql.DB的close方法 关闭数据库
 func (s *DB) Close() error {
 	if db, ok := s.parent.db.(closer); ok {
 		return db.Close()
