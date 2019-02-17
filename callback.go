@@ -18,7 +18,7 @@ type Callback struct {
 	updates    []*func(scope *Scope) // UPDATE操作
 	deletes    []*func(scope *Scope) // DELETE操作
 	queries    []*func(scope *Scope) // QUERY操作
-	rowQueries []*func(scope *Scope)
+	rowQueries []*func(scope *Scope) 
 	processors []*CallbackProcessor
 }
 

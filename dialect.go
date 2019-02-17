@@ -28,13 +28,13 @@ type Dialect interface {
 	HasIndex(tableName string, indexName string) bool
 	// HasForeignKey check has foreign key or not   检查表是否设置外键
 	HasForeignKey(tableName string, foreignKeyName string) bool
-	// RemoveIndex remove index
+	// RemoveIndex remove index	删除索引
 	RemoveIndex(tableName string, indexName string) error
-	// HasTable check has table or not
+	// HasTable check has table or not 表是否存在
 	HasTable(tableName string) bool
-	// HasColumn check has column or not
+	// HasColumn check has column or not 列是否存在
 	HasColumn(tableName string, columnName string) bool
-	// ModifyColumn modify column's type
+	// ModifyColumn modify column's type 修改列的类型
 	ModifyColumn(tableName string, columnName string, typ string) error
 
 	// LimitAndOffsetSQL return generated SQL with Limit and Offset, as mssql has special case

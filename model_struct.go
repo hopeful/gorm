@@ -52,19 +52,19 @@ func (s *ModelStruct) TableName(db *DB) string {
 
 // StructField model field's struct definition
 type StructField struct {
-	DBName          string
+	DBName          string // 数据库名称
 	Name            string
 	Names           []string
-	IsPrimaryKey    bool
-	IsNormal        bool
-	IsIgnored       bool
+	IsPrimaryKey    bool // 是否主键
+	IsNormal        bool //
+	IsIgnored       bool // 是否为忽视的字段
 	IsScanner       bool
-	HasDefaultValue bool
+	HasDefaultValue bool // 是否默认值
 	Tag             reflect.StructTag
 	TagSettings     map[string]string
-	Struct          reflect.StructField
-	IsForeignKey    bool
-	Relationship    *Relationship
+	Struct          reflect.StructField // 字段类型是struct类型
+	IsForeignKey    bool                // 是否外键
+	Relationship    *Relationship       // 关联关系
 
 	tagSettingsLock sync.RWMutex
 }
