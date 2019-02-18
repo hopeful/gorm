@@ -144,12 +144,13 @@ func (s *DB) Callback() *Callback {
 	return s.parent.callbacks
 }
 
-// SetLogger replace default logger
+// SetLogger replace default logger  设置日志工具，可以扩展自定义日志格式
 func (s *DB) SetLogger(log logger) {
 	s.logger = log
 }
 
 // LogMode set log mode, `true` for detailed logs, `false` for no log, default, will only print error logs
+// 日志打印的模式
 func (s *DB) LogMode(enable bool) *DB {
 	if enable {
 		s.logMode = detailedLogMode
