@@ -4,24 +4,24 @@ import (
 	"fmt"
 )
 
-//保存搜索的条件
+//保存SQL条件
 type search struct {
 	db               *DB
-	whereConditions  []map[string]interface{}
-	orConditions     []map[string]interface{}
-	notConditions    []map[string]interface{}
-	havingConditions []map[string]interface{}
-	joinConditions   []map[string]interface{}
-	initAttrs        []interface{}
-	assignAttrs      []interface{}
-	selects          map[string]interface{}
-	omits            []string
-	orders           []interface{}
-	preload          []searchPreload
-	offset           interface{}
-	limit            interface{}
-	group            string
-	tableName        string
+	whereConditions  []map[string]interface{} // where 条件语句
+	orConditions     []map[string]interface{} // or 条件语句
+	notConditions    []map[string]interface{} // not 条件语句
+	havingConditions []map[string]interface{} // having 条件语句
+	joinConditions   []map[string]interface{} // join 条件语句
+	initAttrs        []interface{}            // 参数初始化，若没有查询到相关记录
+	assignAttrs      []interface{}            // 参数返回，不管是否查询到相关记录
+	selects          map[string]interface{}   // 指定要从数据库检索的字段
+	omits            []string                 // 忽略指定字段的更新
+	orders           []interface{}            // order 排序
+	preload          []searchPreload          // 预加载
+	offset           interface{}              // offset偏移 分页查询
+	limit            interface{}              // limit 限制记录条数
+	group            string                   // group 分类
+	tableName        string                   // 表名字
 	raw              bool
 	Unscoped         bool
 	ignoreOrderQuery bool

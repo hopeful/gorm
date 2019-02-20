@@ -172,7 +172,7 @@ func (s *DB) HasBlockGlobalUpdate() bool {
 	return s.blockGlobalUpdate
 }
 
-// SingularTable use singular table by default
+// SingularTable use singular table by default  表的名字后缀不带s 单数
 func (s *DB) SingularTable(enable bool) {
 	modelStructsMap = sync.Map{}
 	s.parent.singularTable = enable
@@ -194,7 +194,7 @@ func (s *DB) QueryExpr() *expr {
 	return Expr(scope.SQL, scope.SQLVars...)
 }
 
-// SubQuery returns the query as sub query
+// SubQuery returns the query as sub query 子查询
 func (s *DB) SubQuery() *expr {
 	scope := s.NewScope(s.Value)
 	scope.InstanceSet("skip_bindvar", true)
