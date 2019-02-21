@@ -23,8 +23,8 @@ type Scope struct {
 	instanceID      string
 	primaryKeyField *Field
 	skipLeft        bool
-	fields          *[]*Field
-	selectAttrs     *[]string
+	fields          *[]*Field //
+	selectAttrs     *[]string // 需要筛选的数据库字段
 }
 
 // IndirectValue return scope's reflect value's indirect value

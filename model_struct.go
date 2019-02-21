@@ -19,14 +19,14 @@ var DefaultTableNameHandler = func(db *DB, defaultTableName string) string {
 
 var modelStructsMap sync.Map
 
-// ModelStruct model definition
+// ModelStruct model definition  struct 模型解析
 type ModelStruct struct {
-	PrimaryFields []*StructField
-	StructFields  []*StructField
+	PrimaryFields []*StructField // 主键字段
+	StructFields  []*StructField // struct字段
 	ModelType     reflect.Type
 
-	defaultTableName string
-	l                sync.Mutex
+	defaultTableName string     // 默认的数据库表名
+	l                sync.Mutex //互斥锁
 }
 
 // TableName returns model's table name

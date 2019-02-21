@@ -10,9 +10,9 @@ import (
 
 // Field model field definition
 type Field struct {
-	*StructField
-	IsBlank bool
-	Field   reflect.Value
+	*StructField               // 结构体字段
+	IsBlank      bool          // 是否空
+	Field        reflect.Value //
 }
 
 // Set set a value to the field

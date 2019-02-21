@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+//定义设置数据库，表明，字段名字决策   采用决策模式
 // Namer is a function type which is given a string and return a string
 type Namer func(string) string
 
