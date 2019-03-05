@@ -16,7 +16,7 @@ type search struct {
 	assignAttrs      []interface{}            // 参数返回，不管是否查询到相关记录
 	selects          map[string]interface{}   // 指定要从数据库检索的字段
 	omits            []string                 // 忽略指定字段的更新
-	orders           []interface{}            // order 排序
+	orders           []interface{}            // order 排序的字段
 	preload          []searchPreload          // 预加载
 	offset           interface{}              // offset偏移 分页查询
 	limit            interface{}              // limit 限制记录条数

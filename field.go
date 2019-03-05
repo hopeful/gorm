@@ -39,7 +39,7 @@ func (field *Field) Set(value interface{}) (err error) {
 				if fieldValue.IsNil() {
 					fieldValue.Set(reflect.New(field.Struct.Type.Elem()))
 				}
-				fieldValue = fieldValue.Elem()
+				fieldValue = fieldValue.Elem() // 指针类型，获取其指向的元素
 			}
 
 			if reflectValue.Type().ConvertibleTo(fieldValue.Type()) {

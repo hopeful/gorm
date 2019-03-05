@@ -150,7 +150,7 @@ func (scope *Scope) FieldByName(name string) (field *Field, ok bool) {
 	return mostMatchedField, mostMatchedField != nil
 }
 
-// PrimaryFields return scope's primary fields
+// PrimaryFields return scope's primary fields  查找主键字段
 func (scope *Scope) PrimaryFields() (fields []*Field) {
 	for _, field := range scope.Fields() {
 		if field.IsPrimaryKey {
@@ -311,7 +311,7 @@ type dbTabler interface {
 	TableName(*DB) string
 }
 
-// TableName return table name
+// TableName return table name  获取数据库表明规则
 func (scope *Scope) TableName() string {
 	if scope.Search != nil && len(scope.Search.tableName) > 0 {
 		return scope.Search.tableName
@@ -340,7 +340,7 @@ func (scope *Scope) QuotedTableName() (name string) {
 	return scope.Quote(scope.TableName())
 }
 
-// CombinedConditionSql return combined condition sql
+// CombinedConditionSql return combined condition sql   合并条件语句的SQL
 func (scope *Scope) CombinedConditionSql() string {
 	joinSQL := scope.joinsSQL()
 	whereSQL := scope.whereSQL()
@@ -351,13 +351,13 @@ func (scope *Scope) CombinedConditionSql() string {
 		scope.havingSQL() + scope.orderSQL() + scope.limitAndOffsetSQL()
 }
 
-// Raw set raw sql
+// Raw set raw sql  原生的SQL
 func (scope *Scope) Raw(sql string) *Scope {
 	scope.SQL = strings.Replace(sql, "$$$", "?", -1)
 	return scope
 }
 
-// Exec perform generated SQL
+// Exec perform generated SQL  执行生成好的SQL
 func (scope *Scope) Exec() *Scope {
 	defer scope.trace(NowFunc())
 
@@ -526,7 +526,7 @@ func (scope *Scope) primaryCondition(value interface{}) string {
 	return fmt.Sprintf("(%v.%v = %v)", scope.QuotedTableName(), scope.Quote(scope.PrimaryKey()), value)
 }
 
-func (scope *Scope) buildCondition(clause map[string]interface{}, include bool) (str string) {
+func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /*是否包含 not语句为false*/) (str string) {
 	var (
 		quotedTableName  = scope.QuotedTableName()
 		quotedPrimaryKey = scope.Quote(scope.PrimaryKey())
@@ -709,6 +709,7 @@ func (scope *Scope) buildSelectQuery(clause map[string]interface{}) (str string)
 	return
 }
 
+// WHERE条件语句的生成
 func (scope *Scope) whereSQL() (sql string) {
 	var (
 		quotedTableName                                = scope.QuotedTableName()
@@ -767,6 +768,7 @@ func (scope *Scope) whereSQL() (sql string) {
 	return
 }
 
+// 生成SELECT 查询字段SQL
 func (scope *Scope) selectSQL() string {
 	if len(scope.Search.selects) == 0 {
 		if len(scope.Search.joinConditions) > 0 {
@@ -777,6 +779,7 @@ func (scope *Scope) selectSQL() string {
 	return scope.buildSelectQuery(scope.Search.selects)
 }
 
+// 生成order排序SQL
 func (scope *Scope) orderSQL() string {
 	if len(scope.Search.orders) == 0 || scope.Search.ignoreOrderQuery {
 		return ""
@@ -797,10 +800,12 @@ func (scope *Scope) orderSQL() string {
 	return " ORDER BY " + strings.Join(orders, ",")
 }
 
+// 限制查询记录数 SQL 语句
 func (scope *Scope) limitAndOffsetSQL() string {
 	return scope.Dialect().LimitAndOffsetSQL(scope.Search.limit, scope.Search.offset)
 }
 
+// GROUP BY sql语句生成
 func (scope *Scope) groupSQL() string {
 	if len(scope.Search.group) == 0 {
 		return ""
@@ -808,6 +813,7 @@ func (scope *Scope) groupSQL() string {
 	return " GROUP BY " + scope.Search.group
 }
 
+// HAVING SQL语句生成
 func (scope *Scope) havingSQL() string {
 	if len(scope.Search.havingConditions) == 0 {
 		return ""

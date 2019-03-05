@@ -17,19 +17,20 @@ var DefaultTableNameHandler = func(db *DB, defaultTableName string) string {
 	return defaultTableName
 }
 
+// 缓存解析好的struct，安全Map
 var modelStructsMap sync.Map
 
 // ModelStruct model definition  struct 模型解析
 type ModelStruct struct {
 	PrimaryFields []*StructField // 主键字段
 	StructFields  []*StructField // struct字段
-	ModelType     reflect.Type
+	ModelType     reflect.Type   // 数据类型
 
 	defaultTableName string     // 默认的数据库表名
 	l                sync.Mutex //互斥锁
 }
 
-// TableName returns model's table name
+// TableName returns model's table name  返回model对应的表名规则
 func (s *ModelStruct) TableName(db *DB) string {
 	s.l.Lock()
 	defer s.l.Unlock()
@@ -53,20 +54,20 @@ func (s *ModelStruct) TableName(db *DB) string {
 // StructField model field's struct definition
 type StructField struct {
 	DBName          string // 数据库名称
-	Name            string
+	Name            string // 字段名字
 	Names           []string
 	IsPrimaryKey    bool // 是否主键
-	IsNormal        bool //
+	IsNormal        bool // 是否为普通字段
 	IsIgnored       bool // 是否为忽视的字段
 	IsScanner       bool
-	HasDefaultValue bool // 是否默认值
-	Tag             reflect.StructTag
-	TagSettings     map[string]string
+	HasDefaultValue bool                // 是否默认值
+	Tag             reflect.StructTag   //结构体Tag
+	TagSettings     map[string]string   //Tag 配置
 	Struct          reflect.StructField // 字段类型是struct类型
 	IsForeignKey    bool                // 是否外键
 	Relationship    *Relationship       // 关联关系
 
-	tagSettingsLock sync.RWMutex
+	tagSettingsLock sync.RWMutex //tag 配置读写锁
 }
 
 // TagSettingsSet Sets a tag in the tag settings map
@@ -123,6 +124,7 @@ func (sf *StructField) clone() *StructField {
 }
 
 // Relationship described the relationship between models
+// 描述结构体之前的关联关系
 type Relationship struct {
 	Kind                         string
 	PolymorphicType              string
@@ -145,6 +147,7 @@ func getForeignField(column string, fields []*StructField) *StructField {
 }
 
 // GetModelStruct get value's model struct, relationships based on struct and tag definition
+// 获取模型的Struct信息
 func (scope *Scope) GetModelStruct() *ModelStruct {
 	var modelStruct ModelStruct
 	// Scope value can't be nil
@@ -162,14 +165,14 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 		return &modelStruct
 	}
 
-	// Get Cached model struct
+	// Get Cached model struct  从缓存中获取模型
 	if value, ok := modelStructsMap.Load(reflectType); ok && value != nil {
 		return value.(*ModelStruct)
 	}
 
-	modelStruct.ModelType = reflectType
+	modelStruct.ModelType = reflectType //struct 模型类型
 
-	// Get all fields
+	// Get all fields  遍历Struct 中的字段
 	for i := 0; i < reflectType.NumField(); i++ {
 		if fieldStruct := reflectType.Field(i); ast.IsExported(fieldStruct.Name) {
 			field := &StructField{
@@ -180,19 +183,20 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 				TagSettings: parseTagSetting(fieldStruct.Tag),
 			}
 
-			// is ignored field
+			// is ignored field   - 忽略
 			if _, ok := field.TagSettingsGet("-"); ok {
 				field.IsIgnored = true
 			} else {
+				// PRIMARY_KEY
 				if _, ok := field.TagSettingsGet("PRIMARY_KEY"); ok {
 					field.IsPrimaryKey = true
 					modelStruct.PrimaryFields = append(modelStruct.PrimaryFields, field)
 				}
-
+				// DEFAULT 是否有默认值
 				if _, ok := field.TagSettingsGet("DEFAULT"); ok {
 					field.HasDefaultValue = true
 				}
-
+				// AUTO_INCREMENT 自增 并且不是主键
 				if _, ok := field.TagSettingsGet("AUTO_INCREMENT"); ok && !field.IsPrimaryKey {
 					field.HasDefaultValue = true
 				}
@@ -216,7 +220,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 						}
 					}
 				} else if _, isTime := fieldValue.(*time.Time); isTime {
-					// is time
+					// is time 时间类型
 					field.IsNormal = true
 				} else if _, ok := field.TagSettingsGet("EMBEDDED"); ok || fieldStruct.Anonymous {
 					// is embedded struct
@@ -247,9 +251,9 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 					}
 					continue
 				} else {
-					// build relationships
+					// build relationships 建立关联关系
 					switch indirectType.Kind() {
-					case reflect.Slice:
+					case reflect.Slice: //切片
 						defer func(field *StructField) {
 							var (
 								relationship           = &Relationship{}
@@ -272,7 +276,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 							for elemType.Kind() == reflect.Slice || elemType.Kind() == reflect.Ptr {
 								elemType = elemType.Elem()
 							}
-
+							//many_to_many
 							if elemType.Kind() == reflect.Struct {
 								if many2many, _ := field.TagSettingsGet("MANY2MANY"); many2many != "" {
 									relationship.Kind = "many_to_many"
@@ -426,7 +430,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 								field.IsNormal = true
 							}
 						}(field)
-					case reflect.Struct:
+					case reflect.Struct: // 结构体
 						defer func(field *StructField) {
 							var (
 								// user has one profile, associationType is User, profile use UserID as foreign key
@@ -588,7 +592,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 								}
 							}
 						}(field)
-					default:
+					default: //普通类型
 						field.IsNormal = true
 					}
 				}
@@ -622,13 +626,14 @@ func (scope *Scope) GetStructFields() (fields []*StructField) {
 	return scope.GetModelStruct().StructFields
 }
 
+// 解析Tag 配置
 func parseTagSetting(tags reflect.StructTag) map[string]string {
 	setting := map[string]string{}
 	for _, str := range []string{tags.Get("sql"), tags.Get("gorm")} {
 		tags := strings.Split(str, ";")
 		for _, value := range tags {
 			v := strings.Split(value, ":")
-			k := strings.TrimSpace(strings.ToUpper(v[0]))
+			k := strings.TrimSpace(strings.ToUpper(v[0])) //统一转换大写
 			if len(v) >= 2 {
 				setting[k] = strings.Join(v[1:], ":")
 			} else {
