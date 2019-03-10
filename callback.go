@@ -18,7 +18,7 @@ type Callback struct {
 	updates    []*func(scope *Scope) // UPDATE操作
 	deletes    []*func(scope *Scope) // DELETE操作
 	queries    []*func(scope *Scope) // QUERY操作
-	rowQueries []*func(scope *Scope) 
+	rowQueries []*func(scope *Scope)
 	processors []*CallbackProcessor
 }
 
@@ -150,7 +150,7 @@ func getRIndex(strs []string, str string) int {
 	return -1
 }
 
-// sortProcessors sort callback processors based on its before, after, remove, replace
+// sortProcessors sort callback processors based on its before, after, remove, replace  处理排序
 func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 	var (
 		allNames, sortedNames []string
@@ -214,7 +214,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 	return sortedFuncs
 }
 
-// reorder all registered processors, and reset CRUD callbacks
+// reorder all registered processors, and reset CRUD callbacks   重新分配
 func (c *Callback) reorder() {
 	var creates, updates, deletes, queries, rowQueries []*CallbackProcessor
 

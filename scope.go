@@ -15,13 +15,13 @@ import (
 // Scope contain current operation's information when you perform any operation on the database
 // Scope 主要是包含当前数据库操作所需要的环境
 type Scope struct {
-	Search          *search
+	Search          *search // SQL 执行条件
 	Value           interface{}
-	SQL             string
+	SQL             string // SQL语句
 	SQLVars         []interface{}
 	db              *DB
 	instanceID      string
-	primaryKeyField *Field
+	primaryKeyField *Field // 主键字段
 	skipLeft        bool
 	fields          *[]*Field //
 	selectAttrs     *[]string // 需要筛选的数据库字段
@@ -429,7 +429,7 @@ func (scope *Scope) CommitOrRollback() *Scope {
 ////////////////////////////////////////////////////////////////////////////////
 // Private Methods For *gorm.Scope
 ////////////////////////////////////////////////////////////////////////////////
-
+// 通过反射方式执行语句
 func (scope *Scope) callMethod(methodName string, reflectValue reflect.Value) {
 	// Only get address from non-pointer
 	if reflectValue.CanAddr() && reflectValue.Kind() != reflect.Ptr {
@@ -1042,6 +1042,7 @@ func (scope *Scope) trace(t time.Time) {
 	}
 }
 
+// 判断当前字段是否为需要的数据库字段 包含两种情况：1、该字段为非数据库字段；2、该字段为过滤字段
 func (scope *Scope) changeableField(field *Field) bool {
 	if selectAttrs := scope.SelectAttrs(); len(selectAttrs) > 0 {
 		for _, attr := range selectAttrs {

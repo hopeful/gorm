@@ -23,7 +23,7 @@ var TheNamingStrategy = &NamingStrategy{
 	Column: defaultNamer,
 }
 
-// AddNamingStrategy sets the naming strategy
+// AddNamingStrategy sets the naming strategy  自定义数据库名称决策
 func AddNamingStrategy(ns *NamingStrategy) {
 	if ns.DB == nil {
 		ns.DB = defaultNamer
