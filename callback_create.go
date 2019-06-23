@@ -15,6 +15,7 @@ func init() {
 	DefaultCallback.Create().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
 	// 更新时间记录的创建时间和更新时间
 	DefaultCallback.Create().Register("gorm:update_time_stamp", updateTimeStampForCreateCallback)
+
 	DefaultCallback.Create().Register("gorm:create", createCallback)
 	DefaultCallback.Create().Register("gorm:force_reload_after_create", forceReloadAfterCreateCallback)
 	DefaultCallback.Create().Register("gorm:save_after_associations", saveAfterAssociationsCallback)
