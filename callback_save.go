@@ -13,6 +13,7 @@ func commitOrRollbackTransactionCallback(scope *Scope) {
 	scope.CommitOrRollback()
 }
 
+// 创建记录校验其所关联关系
 func saveAssociationCheck(scope *Scope, field *Field) (autoUpdate bool, autoCreate bool, saveReference bool, r *Relationship) {
 	checkTruth := func(value interface{}) bool {
 		if v, ok := value.(bool); ok && !v {
@@ -41,12 +42,13 @@ func saveAssociationCheck(scope *Scope, field *Field) (autoUpdate bool, autoCrea
 				saveReference = autoUpdate
 			}
 
+			// 级联更新
 			if value, ok := scope.Get("gorm:association_autoupdate"); ok {
 				autoUpdate = checkTruth(value)
 			} else if value, ok := field.TagSettingsGet("ASSOCIATION_AUTOUPDATE"); ok {
 				autoUpdate = checkTruth(value)
 			}
-
+			// 级联创建
 			if value, ok := scope.Get("gorm:association_autocreate"); ok {
 				autoCreate = checkTruth(value)
 			} else if value, ok := field.TagSettingsGet("ASSOCIATION_AUTOCREATE"); ok {

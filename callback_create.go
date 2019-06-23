@@ -7,9 +7,13 @@ import (
 
 // Define callbacks for creating
 func init() {
+	// 开启事务
 	DefaultCallback.Create().Register("gorm:begin_transaction", beginTransactionCallback)
+	// 创建记录前，调用用户自定义方法
 	DefaultCallback.Create().Register("gorm:before_create", beforeCreateCallback)
+
 	DefaultCallback.Create().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
+	// 更新时间记录的创建时间和更新时间
 	DefaultCallback.Create().Register("gorm:update_time_stamp", updateTimeStampForCreateCallback)
 	DefaultCallback.Create().Register("gorm:create", createCallback)
 	DefaultCallback.Create().Register("gorm:force_reload_after_create", forceReloadAfterCreateCallback)

@@ -53,6 +53,7 @@ func (c *Callback) clone() *Callback {
 //       // set error if some thing wrong happened, will rollback the creating
 //       scope.Err(errors.New("error"))
 //     })
+// 创建SQL类型的处理器
 func (c *Callback) Create() *CallbackProcessor {
 	return &CallbackProcessor{kind: "create", parent: c}
 }
@@ -102,7 +103,7 @@ func (cp *CallbackProcessor) Register(callbackName string, callback func(scope *
 	cp.name = callbackName
 	cp.processor = &callback
 	cp.parent.processors = append(cp.parent.processors, cp)
-	cp.parent.reorder()
+	cp.parent.reorder() //重新排序
 }
 
 // Remove a registered callback
@@ -150,7 +151,11 @@ func getRIndex(strs []string, str string) int {
 	return -1
 }
 
-// sortProcessors sort callback processors based on its before, after, remove, replace  处理排序
+// sortProcessors sort callback processors based on its before, after, remove, replace
+// 对处理器进行排序,为后面处理流程准备
+// 排序规则：
+// 1、若没有指定before，after 则按照注册顺序进行排序
+// 2、若指定了before，after规则，则按照规则排序
 func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 	var (
 		allNames, sortedNames []string
@@ -158,7 +163,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 	)
 
 	for _, cp := range cps {
-		// show warning message the callback name already exists
+		// show warning message the callback name already exists  相同callback处理器名称的waring提示
 		if index := getRIndex(allNames, cp.name); index > -1 && !cp.replace && !cp.remove {
 			log.Printf("[warning] duplicated callback `%v` from %v\n", cp.name, fileWithLineNum())
 		}
@@ -166,7 +171,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 	}
 
 	sortCallbackProcessor = func(c *CallbackProcessor) {
-		if getRIndex(sortedNames, c.name) == -1 { // if not sorted
+		if getRIndex(sortedNames, c.name) == -1 { // if not sorted 如果没有排序，则进行排序，排序好的不需要处理
 			if c.before != "" { // if defined before callback
 				if index := getRIndex(sortedNames, c.before); index != -1 {
 					// if before callback already sorted, append current callback just after it
@@ -174,7 +179,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 				} else if index := getRIndex(allNames, c.before); index != -1 {
 					// if before callback exists but haven't sorted, append current callback to last
 					sortedNames = append(sortedNames, c.name)
-					sortCallbackProcessor(cps[index])
+					sortCallbackProcessor(cps[index]) // 递归调用
 				}
 			}
 
@@ -194,6 +199,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 			}
 
 			// if current callback haven't been sorted, append it to last
+			// 若没有befor after 则进行自然注册的顺序排序
 			if getRIndex(sortedNames, c.name) == -1 {
 				sortedNames = append(sortedNames, c.name)
 			}
@@ -204,6 +210,7 @@ func sortProcessors(cps []*CallbackProcessor) []*func(scope *Scope) {
 		sortCallbackProcessor(cp)
 	}
 
+	// 根据sort的name排序后的名字进行排序
 	var sortedFuncs []*func(scope *Scope)
 	for _, name := range sortedNames {
 		if index := getRIndex(allNames, name); !cps[index].remove {

@@ -13,7 +13,7 @@ import (
 )
 
 // Scope contain current operation's information when you perform any operation on the database
-// Scope 主要是包含当前数据库操作所需要的环境
+// Scope 主要是包含当前数据库操作所需要的环境 一次会话session
 type Scope struct {
 	Search          *search // SQL 执行条件
 	Value           interface{}
@@ -104,6 +104,7 @@ func (scope *Scope) SkipLeft() {
 }
 
 // Fields get value's fields
+// 通过反射机制获取数据库对应的字段信息
 func (scope *Scope) Fields() []*Field {
 	if scope.fields == nil {
 		var (

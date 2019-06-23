@@ -147,7 +147,7 @@ func getForeignField(column string, fields []*StructField) *StructField {
 }
 
 // GetModelStruct get value's model struct, relationships based on struct and tag definition
-// 获取模型的Struct信息
+// 获取模型的Struct信息及关联关系，主要是通过Struct中的tag标识获取
 func (scope *Scope) GetModelStruct() *ModelStruct {
 	var modelStruct ModelStruct
 	// Scope value can't be nil
@@ -155,6 +155,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 		return &modelStruct
 	}
 
+	// 反射结构体
 	reflectType := reflect.ValueOf(scope.Value).Type()
 	for reflectType.Kind() == reflect.Slice || reflectType.Kind() == reflect.Ptr {
 		reflectType = reflectType.Elem()
@@ -202,12 +203,13 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 				}
 
 				indirectType := fieldStruct.Type
-				for indirectType.Kind() == reflect.Ptr {
+				for indirectType.Kind() == reflect.Ptr { // 指针类型
 					indirectType = indirectType.Elem()
 				}
 
 				fieldValue := reflect.New(indirectType).Interface()
 				if _, isScanner := fieldValue.(sql.Scanner); isScanner {
+					// SQL中可被扫描对象
 					// is scanner
 					field.IsScanner, field.IsNormal = true, true
 					if indirectType.Kind() == reflect.Struct {
@@ -225,6 +227,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 				} else if _, ok := field.TagSettingsGet("EMBEDDED"); ok || fieldStruct.Anonymous {
 					// is embedded struct
 					for _, subField := range scope.New(fieldValue).GetModelStruct().StructFields {
+						// 递归调用
 						subField = subField.clone()
 						subField.Names = append([]string{fieldStruct.Name}, subField.Names...)
 						if prefix, ok := field.TagSettingsGet("EMBEDDED_PREFIX"); ok {
@@ -626,7 +629,7 @@ func (scope *Scope) GetStructFields() (fields []*StructField) {
 	return scope.GetModelStruct().StructFields
 }
 
-// 解析Tag 配置
+// 解析Tag 配置  带有sql或者gorm的效果一样，同一个字段多个属性的用分号”;“隔开
 func parseTagSetting(tags reflect.StructTag) map[string]string {
 	setting := map[string]string{}
 	for _, str := range []string{tags.Get("sql"), tags.Get("gorm")} {

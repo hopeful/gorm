@@ -37,6 +37,7 @@ func (s *search) clone() *search {
 	return &clone
 }
 
+// 添加到Where条件
 func (s *search) Where(query interface{}, values ...interface{}) *search {
 	s.whereConditions = append(s.whereConditions, map[string]interface{}{"query": query, "args": values})
 	return s
