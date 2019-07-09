@@ -7,7 +7,9 @@ import (
 
 // Define callbacks for deleting
 func init() {
+	// 开启事务
 	DefaultCallback.Delete().Register("gorm:begin_transaction", beginTransactionCallback)
+
 	DefaultCallback.Delete().Register("gorm:before_delete", beforeDeleteCallback)
 	DefaultCallback.Delete().Register("gorm:delete", deleteCallback)
 	DefaultCallback.Delete().Register("gorm:after_delete", afterDeleteCallback)
@@ -16,6 +18,7 @@ func init() {
 
 // beforeDeleteCallback will invoke `BeforeDelete` method before deleting
 func beforeDeleteCallback(scope *Scope) {
+	// check校验删除语句，必须有where条件
 	if scope.DB().HasBlockGlobalUpdate() && !scope.hasConditions() {
 		scope.Err(errors.New("Missing WHERE clause while deleting"))
 		return
@@ -33,6 +36,7 @@ func deleteCallback(scope *Scope) {
 			extraOption = fmt.Sprint(str)
 		}
 
+		// 判断是否有deletedAt 字段，若有则进行逻辑删除，无则进行物理删除
 		deletedAtField, hasDeletedAtField := scope.FieldByName("DeletedAt")
 
 		if !scope.Search.Unscoped && hasDeletedAtField {

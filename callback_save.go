@@ -5,10 +5,12 @@ import (
 	"strings"
 )
 
+// 开启事务
 func beginTransactionCallback(scope *Scope) {
 	scope.Begin()
 }
 
+// 提交事务（回滚）
 func commitOrRollbackTransactionCallback(scope *Scope) {
 	scope.CommitOrRollback()
 }

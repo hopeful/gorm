@@ -9,17 +9,21 @@ import (
 func init() {
 	// 开启事务
 	DefaultCallback.Create().Register("gorm:begin_transaction", beginTransactionCallback)
-	// 创建记录前，调用用户自定义方法
+	// 创建记录前，扩展调用用户自定义方法
 	DefaultCallback.Create().Register("gorm:before_create", beforeCreateCallback)
 
 	DefaultCallback.Create().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
 	// 更新时间记录的创建时间和更新时间
 	DefaultCallback.Create().Register("gorm:update_time_stamp", updateTimeStampForCreateCallback)
-
+	// 创建SQL语句，插入数据
 	DefaultCallback.Create().Register("gorm:create", createCallback)
+	// 对defaul数据库字段重新读取数据库
 	DefaultCallback.Create().Register("gorm:force_reload_after_create", forceReloadAfterCreateCallback)
+	//
 	DefaultCallback.Create().Register("gorm:save_after_associations", saveAfterAssociationsCallback)
+	// 扩展创建记录后处理事件
 	DefaultCallback.Create().Register("gorm:after_create", afterCreateCallback)
+	// 提交记录提交
 	DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
 }
 
@@ -53,13 +57,14 @@ func updateTimeStampForCreateCallback(scope *Scope) {
 }
 
 // createCallback the callback used to insert data into database
+// 创建SQL语句把数据insert到数据库
 func createCallback(scope *Scope) {
 	if !scope.HasError() {
 		defer scope.trace(NowFunc())
 
 		var (
-			columns, placeholders        []string
-			blankColumnsWithDefaultValue []string
+			columns, placeholders        []string // 列
+			blankColumnsWithDefaultValue []string // 空字段并有default 值的字段
 		)
 
 		for _, field := range scope.Fields() {

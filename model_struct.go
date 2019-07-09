@@ -56,10 +56,10 @@ type StructField struct {
 	DBName          string // 数据库名称
 	Name            string // 字段名字
 	Names           []string
-	IsPrimaryKey    bool // 是否主键
-	IsNormal        bool // 是否为普通字段
-	IsIgnored       bool // 是否为忽视的字段
-	IsScanner       bool
+	IsPrimaryKey    bool                // 是否主键
+	IsNormal        bool                // 是否为普通字段
+	IsIgnored       bool                // 是否为忽视的字段
+	IsScanner       bool                // 是否
 	HasDefaultValue bool                // 是否默认值
 	Tag             reflect.StructTag   //结构体Tag
 	TagSettings     map[string]string   //Tag 配置

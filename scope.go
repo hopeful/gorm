@@ -15,15 +15,15 @@ import (
 // Scope contain current operation's information when you perform any operation on the database
 // Scope 主要是包含当前数据库操作所需要的环境 一次会话session
 type Scope struct {
-	Search          *search // SQL 执行条件
-	Value           interface{}
-	SQL             string // SQL语句
+	Search          *search     // SQL 执行条件
+	Value           interface{} // 参数实例
+	SQL             string      // SQL语句
 	SQLVars         []interface{}
 	db              *DB
 	instanceID      string
 	primaryKeyField *Field // 主键字段
 	skipLeft        bool
-	fields          *[]*Field //
+	fields          *[]*Field // 结构体解析成Field字段
 	selectAttrs     *[]string // 需要筛选的数据库字段
 }
 
@@ -259,6 +259,7 @@ func (scope *Scope) CallMethod(methodName string) {
 func (scope *Scope) AddToVars(value interface{}) string {
 	_, skipBindVar := scope.InstanceGet("skip_bindvar")
 
+	// 判断value 是否表达式类型的
 	if expr, ok := value.(*expr); ok {
 		exp := expr.expr
 		for _, arg := range expr.args {
@@ -527,6 +528,7 @@ func (scope *Scope) primaryCondition(value interface{}) string {
 	return fmt.Sprintf("(%v.%v = %v)", scope.QuotedTableName(), scope.Quote(scope.PrimaryKey()), value)
 }
 
+// 构建SQL语句的Where条件语句
 func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /*是否包含 not语句为false*/) (str string) {
 	var (
 		quotedTableName  = scope.QuotedTableName()
@@ -667,6 +669,7 @@ func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /
 	return
 }
 
+// 构建Select Query的 查询字段
 func (scope *Scope) buildSelectQuery(clause map[string]interface{}) (str string) {
 	switch value := clause["query"].(type) {
 	case string:
@@ -710,7 +713,7 @@ func (scope *Scope) buildSelectQuery(clause map[string]interface{}) (str string)
 	return
 }
 
-// WHERE条件语句的生成
+// WHERE条件语句的生成入口
 func (scope *Scope) whereSQL() (sql string) {
 	var (
 		quotedTableName                                = scope.QuotedTableName()
