@@ -9,14 +9,20 @@ import (
 
 // Define callbacks for updating
 func init() {
+	//
 	DefaultCallback.Update().Register("gorm:assign_updating_attributes", assignUpdatingAttributesCallback)
+	// 开启事务
 	DefaultCallback.Update().Register("gorm:begin_transaction", beginTransactionCallback)
+	// update前hooks
 	DefaultCallback.Update().Register("gorm:before_update", beforeUpdateCallback)
 	DefaultCallback.Update().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
+	// 更新update_time
 	DefaultCallback.Update().Register("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
 	DefaultCallback.Update().Register("gorm:update", updateCallback)
 	DefaultCallback.Update().Register("gorm:save_after_associations", saveAfterAssociationsCallback)
+	// 更新完后hooks
 	DefaultCallback.Update().Register("gorm:after_update", afterUpdateCallback)
+	// 提交或者回滚事务
 	DefaultCallback.Update().Register("gorm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
 }
 
@@ -33,10 +39,12 @@ func assignUpdatingAttributesCallback(scope *Scope) {
 
 // beforeUpdateCallback will invoke `BeforeSave`, `BeforeUpdate` method before updating
 func beforeUpdateCallback(scope *Scope) {
+	// 检查SQL是否含有where条件
 	if scope.DB().HasBlockGlobalUpdate() && !scope.hasConditions() {
 		scope.Err(errors.New("Missing WHERE clause while updating"))
 		return
 	}
+	// update前hooks
 	if _, ok := scope.Get("gorm:update_column"); !ok {
 		if !scope.HasError() {
 			scope.CallMethod("BeforeSave")
