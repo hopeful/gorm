@@ -18,7 +18,7 @@ type DB struct {
 
 	// single db   单个db私有属性
 	db                SQLCommon    // 定义的公共接口（Exec，Prepare，Query，QueryRow）
-	blockGlobalUpdate bool         //TODO 需要核实 全局更新标志
+	blockGlobalUpdate bool         // TODO 需要核实 全局更新标志
 	logMode           logModeValue // 日志开关
 	logger            logger       // 自定义日志接口
 	search            *search      // 拼装SQL查询条件  保存搜索的条件where, limit, group，
@@ -28,7 +28,7 @@ type DB struct {
 	parent        *DB       // 父DB对象
 	callbacks     *Callback // 保存各种操作需要执行的调用链
 	dialect       Dialect   // 数据库方言
-	singularTable bool
+	singularTable bool      // 数据库表明是否带s，若为true着默认为用户定义表明，若为false，则自动在表名加s
 }
 
 type logModeValue int
@@ -99,6 +99,7 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 }
 
 // New clone a new db connection without search conditions
+// Clone新 db连接
 func (s *DB) New() *DB {
 	clone := s.clone()
 	clone.search = nil
@@ -121,6 +122,7 @@ func (s *DB) Close() error {
 
 // DB get `*sql.DB` from current connection
 // If the underlying database connection is not a *sql.DB, returns nil
+// 获取sql.DB
 func (s *DB) DB() *sql.DB {
 	db, _ := s.db.(*sql.DB)
 	return db
@@ -139,6 +141,7 @@ func (s *DB) Dialect() Dialect {
 // Callback return `Callbacks` container, you could add/change/delete callbacks with it
 //     db.Callback().Create().Register("update_created_at", updateCreated)
 // Refer https://jinzhu.github.io/gorm/development.html#callbacks
+// 返回callback
 func (s *DB) Callback() *Callback {
 	s.parent.callbacks = s.parent.callbacks.clone()
 	return s.parent.callbacks
@@ -162,6 +165,7 @@ func (s *DB) LogMode(enable bool) *DB {
 
 // BlockGlobalUpdate if true, generates an error on update/delete without where clause.
 // This is to prevent eventual error with empty objects updates/deletions
+// BlockGlobalUpdate 主要是为了防止在update/delete 没有where条件的操作
 func (s *DB) BlockGlobalUpdate(enable bool) *DB {
 	s.blockGlobalUpdate = enable
 	return s
@@ -179,6 +183,7 @@ func (s *DB) SingularTable(enable bool) {
 }
 
 // NewScope create a scope for current operation
+// 新建一次回话
 func (s *DB) NewScope(value interface{}) *Scope {
 	dbClone := s.clone()
 	dbClone.Value = value
@@ -186,6 +191,7 @@ func (s *DB) NewScope(value interface{}) *Scope {
 }
 
 // QueryExpr returns the query as expr object
+// 返回表达式结构体
 func (s *DB) QueryExpr() *expr {
 	scope := s.NewScope(s.Value)
 	scope.InstanceSet("skip_bindvar", true)
@@ -194,7 +200,8 @@ func (s *DB) QueryExpr() *expr {
 	return Expr(scope.SQL, scope.SQLVars...)
 }
 
-// SubQuery returns the query as sub query 子查询
+// SubQuery returns the query as sub query
+// 返回一个子查询表达式
 func (s *DB) SubQuery() *expr {
 	scope := s.NewScope(s.Value)
 	scope.InstanceSet("skip_bindvar", true)
