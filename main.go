@@ -14,7 +14,7 @@ import (
 type DB struct {
 	Value        interface{}
 	Error        error
-	RowsAffected int64
+	RowsAffected int64 // SQL影响的行数
 
 	// single db   单个db私有属性
 	db                SQLCommon    // 定义的公共接口（Exec，Prepare，Query，QueryRow）
@@ -22,7 +22,7 @@ type DB struct {
 	logMode           logModeValue // 日志开关
 	logger            logger       // 自定义日志接口
 	search            *search      // 拼装SQL查询条件  保存搜索的条件where, limit, group，
-	values            sync.Map
+	values            sync.Map     // 保存处理过程中的临时值
 
 	// global db  全局DB属性
 	parent        *DB       // 父DB对象

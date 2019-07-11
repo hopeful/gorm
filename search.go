@@ -23,7 +23,7 @@ type search struct {
 	group            string                   // group 分类
 	tableName        string                   // 表名字
 	raw              bool
-	Unscoped         bool
+	Unscoped         bool // 是否查询出所有记录，（包括delete_time 数据）
 	ignoreOrderQuery bool
 }
 

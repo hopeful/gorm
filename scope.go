@@ -241,6 +241,7 @@ func (scope *Scope) SetColumn(column interface{}, value interface{}) error {
 }
 
 // CallMethod call scope value's method, if it is a slice, will call its element's method one by one
+// 通过放射机制获取struct的方法，该方法主要是用在 create、update、delete、find的hooks
 func (scope *Scope) CallMethod(methodName string) {
 	if scope.Value == nil {
 		return
@@ -281,6 +282,7 @@ func (scope *Scope) AddToVars(value interface{}) string {
 }
 
 // SelectAttrs return selected attributes
+// 获取查询字段属性
 func (scope *Scope) SelectAttrs() []string {
 	if scope.selectAttrs == nil {
 		attrs := []string{}
@@ -315,18 +317,19 @@ type dbTabler interface {
 
 // TableName return table name  获取数据库表明规则
 func (scope *Scope) TableName() string {
+	// 已指定表名
 	if scope.Search != nil && len(scope.Search.tableName) > 0 {
 		return scope.Search.tableName
 	}
-
+	// 实现了TableName 接口方法
 	if tabler, ok := scope.Value.(tabler); ok {
 		return tabler.TableName()
 	}
-
+	// 实现了TableName（*DB） 接口方法
 	if tabler, ok := scope.Value.(dbTabler); ok {
 		return tabler.TableName(scope.db)
 	}
-
+	// 通过反射结构体名称
 	return scope.GetModelStruct().TableName(scope.db.Model(scope.Value))
 }
 
@@ -342,7 +345,8 @@ func (scope *Scope) QuotedTableName() (name string) {
 	return scope.Quote(scope.TableName())
 }
 
-// CombinedConditionSql return combined condition sql   合并条件语句的SQL
+// CombinedConditionSql return combined condition sql
+// 合并条件语句的SQL
 func (scope *Scope) CombinedConditionSql() string {
 	joinSQL := scope.joinsSQL()
 	whereSQL := scope.whereSQL()
@@ -529,7 +533,7 @@ func (scope *Scope) primaryCondition(value interface{}) string {
 }
 
 // 构建SQL语句的Where条件语句
-func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /*是否包含 not语句为false*/) (str string) {
+func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /*是否包含 not语句为 false*/) (str string) {
 	var (
 		quotedTableName  = scope.QuotedTableName()
 		quotedPrimaryKey = scope.Quote(scope.PrimaryKey())
@@ -720,7 +724,7 @@ func (scope *Scope) whereSQL() (sql string) {
 		deletedAtField, hasDeletedAtField              = scope.FieldByName("DeletedAt")
 		primaryConditions, andConditions, orConditions []string
 	)
-
+	//
 	if !scope.Search.Unscoped && hasDeletedAtField {
 		sql := fmt.Sprintf("%v.%v IS NULL", quotedTableName, scope.Quote(deletedAtField.DBName))
 		primaryConditions = append(primaryConditions, sql)
@@ -849,6 +853,7 @@ func (scope *Scope) joinsSQL() string {
 	return strings.Join(joinConditions, " ") + " "
 }
 
+// 转换成SELECT语句
 func (scope *Scope) prepareQuerySQL() {
 	if scope.Search.raw {
 		scope.Raw(scope.CombinedConditionSql())
