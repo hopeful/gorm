@@ -15,14 +15,14 @@ import (
 // Scope contain current operation's information when you perform any operation on the database
 // Scope 主要是包含当前数据库操作所需要的环境 一次会话session
 type Scope struct {
-	Search          *search     // SQL 执行条件
-	Value           interface{} // 参数实例
-	SQL             string      // SQL语句
-	SQLVars         []interface{}
+	Search          *search       // SQL 执行条件
+	Value           interface{}   // 参数实例
+	SQL             string        // 可以执行SQL语句，带有占位符？
+	SQLVars         []interface{} // SQL语句中替换占位符的值
 	db              *DB
 	instanceID      string
-	primaryKeyField *Field // 主键字段
-	skipLeft        bool
+	primaryKeyField *Field    // 主键字段
+	skipLeft        bool      //是否跳过
 	fields          *[]*Field // 结构体解析成Field字段
 	selectAttrs     *[]string // 需要筛选的数据库字段
 }
@@ -81,6 +81,7 @@ func (scope *Scope) Quote(str string) string {
 }
 
 // Err add error to Scope
+// 执行SQL产生的Err
 func (scope *Scope) Err(err error) error {
 	if err != nil {
 		scope.db.AddError(err)
@@ -467,10 +468,10 @@ func (scope *Scope) callMethod(methodName string, reflectValue reflect.Value) {
 }
 
 var (
-	columnRegexp        = regexp.MustCompile("^[a-zA-Z\\d]+(\\.[a-zA-Z\\d]+)*$") // only match string like `name`, `users.name`
-	isNumberRegexp      = regexp.MustCompile("^\\s*\\d+\\s*$")                   // match if string is number
-	comparisonRegexp    = regexp.MustCompile("(?i) (=|<>|(>|<)(=?)|LIKE|IS|IN) ")
-	countingQueryRegexp = regexp.MustCompile("(?i)^count(.+)$")
+	columnRegexp        = regexp.MustCompile("^[a-zA-Z\\d]+(\\.[a-zA-Z\\d]+)*$")  // only match string like `name`, `users.name` 匹配table表字段
+	isNumberRegexp      = regexp.MustCompile("^\\s*\\d+\\s*$")                    // match if string is number  匹配string类型是不是数字
+	comparisonRegexp    = regexp.MustCompile("(?i) (=|<>|(>|<)(=?)|LIKE|IS|IN) ") // 用来匹配 SQL符号
+	countingQueryRegexp = regexp.MustCompile("(?i)^count(.+)$")                   // 用来匹配COUNT()
 )
 
 func (scope *Scope) quoteIfPossible(str string) string {
@@ -480,6 +481,7 @@ func (scope *Scope) quoteIfPossible(str string) string {
 	return str
 }
 
+// sql 原生的Scan映射
 func (scope *Scope) scan(rows *sql.Rows, columns []string, fields []*Field) {
 	var (
 		ignored            interface{}
@@ -532,7 +534,7 @@ func (scope *Scope) primaryCondition(value interface{}) string {
 	return fmt.Sprintf("(%v.%v = %v)", scope.QuotedTableName(), scope.Quote(scope.PrimaryKey()), value)
 }
 
-// 构建SQL语句的Where条件语句
+// 构建SQL语句的条件语句
 func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /*是否包含 not语句为 false*/) (str string) {
 	var (
 		quotedTableName  = scope.QuotedTableName()
@@ -558,7 +560,7 @@ func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /
 		}
 		str = fmt.Sprintf("(%v.%v %s (?))", quotedTableName, quotedPrimaryKey, inSQL)
 		clause["args"] = []interface{}{value}
-	case string:
+	case string: // 字符串类型
 		if isNumberRegexp.MatchString(value) {
 			return fmt.Sprintf("(%v.%v %s %v)", quotedTableName, quotedPrimaryKey, equalSQL, scope.AddToVars(value))
 		}
@@ -574,7 +576,7 @@ func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /
 				str = fmt.Sprintf("(%v)", value)
 			}
 		}
-	case map[string]interface{}:
+	case map[string]interface{}: // 查询参数map类型
 		var sqls []string
 		for key, value := range value {
 			if value != nil {
@@ -724,31 +726,32 @@ func (scope *Scope) whereSQL() (sql string) {
 		deletedAtField, hasDeletedAtField              = scope.FieldByName("DeletedAt")
 		primaryConditions, andConditions, orConditions []string
 	)
-	//
+	// 是否DeleteAt字段
 	if !scope.Search.Unscoped && hasDeletedAtField {
 		sql := fmt.Sprintf("%v.%v IS NULL", quotedTableName, scope.Quote(deletedAtField.DBName))
 		primaryConditions = append(primaryConditions, sql)
 	}
-
+	// 主键不为零
 	if !scope.PrimaryKeyZero() {
 		for _, field := range scope.PrimaryFields() {
 			sql := fmt.Sprintf("%v.%v = %v", quotedTableName, scope.Quote(field.DBName), scope.AddToVars(field.Field.Interface()))
 			primaryConditions = append(primaryConditions, sql)
 		}
 	}
-
+	// where条件语句，都是AND 并集
 	for _, clause := range scope.Search.whereConditions {
 		if sql := scope.buildCondition(clause, true); sql != "" {
 			andConditions = append(andConditions, sql)
 		}
 	}
 
+	// or条件语句构建
 	for _, clause := range scope.Search.orConditions {
 		if sql := scope.buildCondition(clause, true); sql != "" {
 			orConditions = append(orConditions, sql)
 		}
 	}
-
+	// not条件构建
 	for _, clause := range scope.Search.notConditions {
 		if sql := scope.buildCondition(clause, false); sql != "" {
 			andConditions = append(andConditions, sql)
@@ -779,6 +782,7 @@ func (scope *Scope) whereSQL() (sql string) {
 // 生成SELECT 查询字段SQL
 func (scope *Scope) selectSQL() string {
 	if len(scope.Search.selects) == 0 {
+		// 是否有join查询情况，若有，则SQL按表名.* 查询所有的列
 		if len(scope.Search.joinConditions) > 0 {
 			return fmt.Sprintf("%v.*", scope.QuotedTableName())
 		}
@@ -842,6 +846,7 @@ func (scope *Scope) havingSQL() string {
 	return " HAVING " + combinedSQL
 }
 
+// 生成join SQL语句
 func (scope *Scope) joinsSQL() string {
 	var joinConditions []string
 	for _, clause := range scope.Search.joinConditions {
@@ -853,7 +858,7 @@ func (scope *Scope) joinsSQL() string {
 	return strings.Join(joinConditions, " ") + " "
 }
 
-// 转换成SELECT语句
+// 生成SELECT语句
 func (scope *Scope) prepareQuerySQL() {
 	if scope.Search.raw {
 		scope.Raw(scope.CombinedConditionSql())

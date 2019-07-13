@@ -20,7 +20,7 @@ var DefaultTableNameHandler = func(db *DB, defaultTableName string) string {
 // 缓存解析好的struct，安全Map
 var modelStructsMap sync.Map
 
-// ModelStruct model definition  struct 模型解析
+// ModelStruct model definition  struct模型解析 映射到数据库哪张表
 type ModelStruct struct {
 	PrimaryFields []*StructField // 主键字段
 	StructFields  []*StructField // struct字段
@@ -52,6 +52,7 @@ func (s *ModelStruct) TableName(db *DB) string {
 }
 
 // StructField model field's struct definition
+// 对struct结构体字段与数据库字段，关系的映射
 type StructField struct {
 	DBName          string // 数据库名称
 	Name            string // 字段名字
@@ -61,8 +62,8 @@ type StructField struct {
 	IsIgnored       bool                // 是否为忽视的字段
 	IsScanner       bool                // 是否
 	HasDefaultValue bool                // 是否默认值
-	Tag             reflect.StructTag   //结构体Tag
-	TagSettings     map[string]string   //Tag 配置
+	Tag             reflect.StructTag   //	结构体Tag
+	TagSettings     map[string]string   //	Tag 配置的属性
 	Struct          reflect.StructField // 字段类型是struct类型
 	IsForeignKey    bool                // 是否外键
 	Relationship    *Relationship       // 关联关系
@@ -126,12 +127,12 @@ func (sf *StructField) clone() *StructField {
 // Relationship described the relationship between models
 // 描述结构体之前的关联关系
 type Relationship struct {
-	Kind                         string
-	PolymorphicType              string
+	Kind                         string // 关联关系 一对多、多对多、一对一
+	PolymorphicType              string // 多态类型表名
 	PolymorphicDBName            string
 	PolymorphicValue             string
-	ForeignFieldNames            []string
-	ForeignDBNames               []string
+	ForeignFieldNames            []string // 外键字段
+	ForeignDBNames               []string // 外键对应的数据库表
 	AssociationForeignFieldNames []string
 	AssociationForeignDBNames    []string
 	JoinTableHandler             JoinTableHandlerInterface
@@ -225,7 +226,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 					// is time 时间类型
 					field.IsNormal = true
 				} else if _, ok := field.TagSettingsGet("EMBEDDED"); ok || fieldStruct.Anonymous {
-					// is embedded struct
+					// is embedded struct  嵌套结构体类型
 					for _, subField := range scope.New(fieldValue).GetModelStruct().StructFields {
 						// 递归调用
 						subField = subField.clone()
