@@ -258,6 +258,7 @@ func (scope *Scope) CallMethod(methodName string) {
 }
 
 // AddToVars add value as sql's vars, used to prevent SQL injection
+// 添加sql的条件的values 到scope.SQLVars  若是Expr表达式的，则替换表达式中的值
 func (scope *Scope) AddToVars(value interface{}) string {
 	_, skipBindVar := scope.InstanceGet("skip_bindvar")
 
@@ -576,7 +577,11 @@ func (scope *Scope) buildCondition(clause map[string]interface{}, include bool /
 				str = fmt.Sprintf("(%v)", value)
 			}
 		}
+<<<<<<< Updated upstream
 	case map[string]interface{}: // 查询参数map类型
+=======
+	case map[string]interface{}: //map 类型的值
+>>>>>>> Stashed changes
 		var sqls []string
 		for key, value := range value {
 			if value != nil {
@@ -858,7 +863,11 @@ func (scope *Scope) joinsSQL() string {
 	return strings.Join(joinConditions, " ") + " "
 }
 
+<<<<<<< Updated upstream
 // 生成SELECT语句
+=======
+// 准备SQL语句
+>>>>>>> Stashed changes
 func (scope *Scope) prepareQuerySQL() {
 	if scope.Search.raw {
 		scope.Raw(scope.CombinedConditionSql())
@@ -875,6 +884,7 @@ func (scope *Scope) inlineCondition(values ...interface{}) *Scope {
 	return scope
 }
 
+// 执行callback方法的总入口
 func (scope *Scope) callCallbacks(funcs []*func(s *Scope)) *Scope {
 	defer func() {
 		if err := recover(); err != nil {
@@ -924,6 +934,7 @@ func convertInterfaceToMap(values interface{}, withIgnoredField bool) map[string
 	return attrs
 }
 
+// update
 func (scope *Scope) updatedAttrsWithValues(value interface{}) (results map[string]interface{}, hasUpdate bool) {
 	if scope.IndirectValue().Kind() != reflect.Struct {
 		return convertInterfaceToMap(value, false), true

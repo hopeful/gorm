@@ -27,11 +27,12 @@ func queryCallback(scope *Scope) {
 	defer scope.trace(NowFunc())
 
 	var (
-		isSlice, isPtr bool
-		resultType     reflect.Type
+		isSlice, isPtr bool         // 是否是数组，指正类型
+		resultType     reflect.Type // 结果类型
 		results        = scope.IndirectValue()
 	)
 
+	// 是否根绝主键进行排序
 	if orderBy, ok := scope.Get("gorm:order_by_primary_key"); ok {
 		if primaryField := scope.PrimaryField(); primaryField != nil {
 			scope.Search.Order(fmt.Sprintf("%v.%v %v", scope.QuotedTableName(), scope.Quote(primaryField.DBName), orderBy))
