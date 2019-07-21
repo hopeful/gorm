@@ -9,7 +9,7 @@ import (
 
 // Define callbacks for updating
 func init() {
-	//
+	// 标记需要更新的update字段模型
 	DefaultCallback.Update().Register("gorm:assign_updating_attributes", assignUpdatingAttributesCallback)
 	// 开启事务
 	DefaultCallback.Update().Register("gorm:begin_transaction", beginTransactionCallback)
