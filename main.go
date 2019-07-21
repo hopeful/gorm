@@ -77,12 +77,12 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	default:
 		return nil, fmt.Errorf("invalid database source: %v is not a valid type", value)
 	}
-	// 创建新的DB链接
+	// 创建DB连接，封装golang/Sql的DB
 	db = &DB{
-		db:        dbSQL,
-		logger:    defaultLogger,
-		callbacks: DefaultCallback,
-		dialect:   newDialect(dialect, dbSQL),
+		db:        dbSQL,                      // 设置SQLCommon
+		logger:    defaultLogger,              // 设置日志
+		callbacks: DefaultCallback,            // 设置Callback方法集合
+		dialect:   newDialect(dialect, dbSQL), // 设置数据库方言
 	}
 	db.parent = db
 	if err != nil {

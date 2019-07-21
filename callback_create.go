@@ -11,7 +11,7 @@ func init() {
 	DefaultCallback.Create().Register("gorm:begin_transaction", beginTransactionCallback)
 	// 创建记录前，扩展调用用户自定义方法
 	DefaultCallback.Create().Register("gorm:before_create", beforeCreateCallback)
-
+	// 对级联创建的一些检查
 	DefaultCallback.Create().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
 	// 更新时间记录的创建时间和更新时间
 	DefaultCallback.Create().Register("gorm:update_time_stamp", updateTimeStampForCreateCallback)
@@ -19,7 +19,7 @@ func init() {
 	DefaultCallback.Create().Register("gorm:create", createCallback)
 	// 对defaul数据库字段重新读取数据库
 	DefaultCallback.Create().Register("gorm:force_reload_after_create", forceReloadAfterCreateCallback)
-	//
+	// 记录创建完后的级联操作
 	DefaultCallback.Create().Register("gorm:save_after_associations", saveAfterAssociationsCallback)
 	// 扩展创建记录后处理事件
 	DefaultCallback.Create().Register("gorm:after_create", afterCreateCallback)

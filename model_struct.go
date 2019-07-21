@@ -20,7 +20,7 @@ var DefaultTableNameHandler = func(db *DB, defaultTableName string) string {
 // 缓存解析好的struct，安全Map
 var modelStructsMap sync.Map
 
-// ModelStruct model definition  struct模型解析 映射到数据库哪张表
+// ModelStruct model definition  struct模型定义
 type ModelStruct struct {
 	PrimaryFields []*StructField // 主键字段
 	StructFields  []*StructField // struct字段

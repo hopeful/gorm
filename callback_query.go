@@ -8,8 +8,11 @@ import (
 
 // Define callbacks for querying
 func init() {
+	// query执行
 	DefaultCallback.Query().Register("gorm:query", queryCallback)
+	// 预加载执行（该过程会判断是否执行）
 	DefaultCallback.Query().Register("gorm:preload", preloadCallback)
+	// query后执行hooks方法
 	DefaultCallback.Query().Register("gorm:after_query", afterQueryCallback)
 }
 
@@ -56,6 +59,7 @@ func queryCallback(scope *Scope) {
 		return
 	}
 
+	// 生成SQL
 	scope.prepareQuerySQL()
 
 	if !scope.HasError() {
@@ -63,7 +67,7 @@ func queryCallback(scope *Scope) {
 		if str, ok := scope.Get("gorm:query_option"); ok {
 			scope.SQL += addExtraSpaceIfExist(fmt.Sprint(str))
 		}
-
+		// SQL语句的执行，并转换成成目标对象
 		if rows, err := scope.SQLDB().Query(scope.SQL, scope.SQLVars...); scope.Err(err) == nil {
 			defer rows.Close()
 

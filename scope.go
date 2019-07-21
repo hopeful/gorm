@@ -19,12 +19,12 @@ type Scope struct {
 	Value           interface{}   // 参数实例
 	SQL             string        // 可以执行SQL语句，带有占位符？
 	SQLVars         []interface{} // SQL语句中替换占位符的值
-	db              *DB
-	instanceID      string
-	primaryKeyField *Field    // 主键字段
-	skipLeft        bool      //是否跳过
-	fields          *[]*Field // 结构体解析成Field字段
-	selectAttrs     *[]string // 需要筛选的数据库字段
+	db              *DB           // 数据库DB连接
+	instanceID      string        // 会话ID
+	primaryKeyField *Field        // 主键字段域
+	skipLeft        bool          // 是否跳出执行
+	fields          *[]*Field     // 结构体解析成Field字段
+	selectAttrs     *[]string     // 需要筛选的数据库字段
 }
 
 // IndirectValue return scope's reflect value's indirect value
@@ -1076,6 +1076,7 @@ func (scope *Scope) changeableField(field *Field) bool {
 	return true
 }
 
+// 用来处理关联关系，并生成相关的SQL
 func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 	toScope := scope.db.NewScope(value)
 	tx := scope.db.Set("gorm:association:source", scope.Value)

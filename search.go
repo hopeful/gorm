@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-//保存SQL条件
+//SQL生成所依赖的条件
 type search struct {
 	db               *DB
 	whereConditions  []map[string]interface{} // where 条件语句
