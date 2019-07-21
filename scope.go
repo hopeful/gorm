@@ -317,7 +317,7 @@ type dbTabler interface {
 }
 
 // TableName return table name  获取数据库表明规则
-func (scope *Scope) TableName() string {
+func (scope *Scope) kaoTableName() string {
 	// 已指定表名
 	if scope.Search != nil && len(scope.Search.tableName) > 0 {
 		return scope.Search.tableName
